@@ -1,0 +1,294 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --rail: 232px;
+    /* Active act accent. Evolves cool → warm → gold across the scroll.
+       Diagnose #5FA8B5 · Dive #E9A93C · Do #F5C978 — existing palette only. */
+    --accent: #5fa8b5;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-abyss text-cream-100 font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: theme("colors.signal.500");
+    color: theme("colors.abyss");
+  }
+
+  /* Keynote-grade scrollbar */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: theme("colors.abyss"); }
+  ::-webkit-scrollbar-thumb {
+    background: theme("colors.navy.700");
+    border-radius: 99px;
+    border: 3px solid theme("colors.abyss");
+  }
+  ::-webkit-scrollbar-thumb:hover { background: theme("colors.depth.700"); }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-eyebrow uppercase tracking-[0.22em] font-medium text-depth-300;
+  }
+
+  .rule {
+    @apply h-px w-full bg-gradient-to-r from-cream-100/15 via-cream-100/5 to-transparent;
+  }
+
+  /* The Depth Gradient — the unifying device */
+  .depth-field {
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(46,119,135,0.16) 0%, transparent 60%),
+      linear-gradient(180deg, #070B18 0%, #0A1024 40%, #04060F 100%);
+  }
+
+  .depth-field-deep {
+    background:
+      radial-gradient(100% 70% at 20% 10%, rgba(26,74,92,0.28) 0%, transparent 65%),
+      linear-gradient(180deg, #04060F 0%, #0E2A3A 55%, #070B18 100%);
+  }
+
+  .depth-field-warm {
+    background:
+      radial-gradient(110% 75% at 70% 15%, rgba(233,169,60,0.13) 0%, transparent 62%),
+      linear-gradient(180deg, #070B18 0%, #0A1024 60%, #04060F 100%);
+  }
+
+  /* Atmosphere tinted by the active act. One field, three moods —
+     not three themes. */
+  .act-field {
+    background:
+      radial-gradient(115% 78% at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 62%),
+      linear-gradient(180deg, #070b18 0%, #0a1024 42%, #04060f 100%);
+    transition: background 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Orientation watermark — 5%, behind everything, never legible-first. */
+  .watermark {
+    @apply pointer-events-none absolute inset-0 flex select-none items-center justify-center overflow-hidden;
+  }
+  .watermark > span {
+    font-family: var(--font-display), Georgia, serif;
+    font-size: clamp(7rem, 26vw, 20rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+    white-space: nowrap;
+    color: var(--accent);
+    opacity: 0.05;
+  }
+
+  .card {
+    @apply rounded-xl border border-cream-100/[0.07] bg-cream-100/[0.025] backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply transition-all duration-500 ease-keynote hover:border-cream-100/[0.14] hover:bg-cream-100/[0.045];
+  }
+
+  /* The Sector Lattice — 10 columns, the SDR's structural number */
+  .lattice {
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(245, 242, 234, 0.05) 0px,
+      rgba(245, 242, 234, 0.05) 1px,
+      transparent 1px,
+      transparent 10%
+    );
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+  }
+}
+
+/* Reduced motion — every animation must survive this */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT — the PDF is the submission, not a convenience.
+
+   WHY THE PREVIOUS ATTEMPT PRINTED BLANK
+   ───────────────────────────────────────
+   v1 forced backgrounds to #fff but only recoloured text on
+   h1/h2/h3/p/li/td/th — most copy lives in <div>/<span>, so it
+   stayed near-white on white.
+
+   v2 kept the dark design and relied on `print-color-adjust: exact`.
+   But Chrome's Print Preview ships with "Background graphics" OFF
+   by default: the dark background was never painted, while the
+   near-white TEXT colour still applied. White on white — blank again.
+
+   v3 (this) prints LIGHT and recolours text with a UNIVERSAL rule
+   rather than an enumerated list, so nothing can be missed. It is
+   legible whether or not the reader enables background graphics,
+   because it depends only on text and borders — both of which
+   Chrome always prints.
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  /* ── 1. Reclaim Framer Motion's inline styles ───────────────
+     opacity / transform / filter are written INLINE, so anything
+     the reader never scrolled past is still at opacity:0 when the
+     snapshot is taken. Only !important can override inline. */
+  *,
+  *::before,
+  *::after {
+    opacity: 1 !important;
+    filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  [style*="transform"] { transform: none !important; }
+
+  /* ── 2. UNIVERSAL recolour — the fix for white-on-white ─────
+     Applied to every element, not an enumerated tag list. */
+  *,
+  *::before,
+  *::after {
+    color: #14171f !important;
+    border-color: #c9c6bd !important;
+    background-image: none !important;
+    background-color: transparent !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  main { padding: 0 !important; margin: 0 !important; }
+
+  /* ── 3. Restore meaning-carrying accents ───────────────────
+     Amber survives print because it stays legible on white. */
+  .eyebrow,
+  .font-mono,
+  [class*="text-signal"],
+  [class*="text-depth"] {
+    color: #8a5c05 !important;
+  }
+
+  /* Secondary/muted copy stays readable but recedes */
+  [class*="text-cream-500"],
+  [class*="/6"],
+  [class*="/7"] {
+    color: #4a4a4a !important;
+  }
+
+  /* ── 4. Chart bars must survive "Background graphics: off".
+     Backgrounds may not paint, but BORDERS always do — so give
+     every data bar an outline that carries its magnitude. */
+  [class*="bg-gradient-to-r"],
+  [class*="bg-gradient-to-t"],
+  [class*="bg-signal"],
+  [class*="bg-depth"],
+  [class*="bg-cream-100/35"],
+  [class*="bg-cream-100/15"] {
+    border: 1px solid #6b6b6b !important;
+    background-color: #dcdcdc !important;
+    min-height: 6px;
+  }
+
+  /* The data-wall reads as a bordered plate on paper */
+  #moment .aspect-\[16\/9\] {
+    border: 1px solid #b8b5ac !important;
+    background-color: #f4f3ef !important;
+  }
+
+  /* ── 5. Chrome that must not print ─────────────────────────── */
+  .no-print,
+  [aria-label="Chapters"] { display: none !important; }
+
+  /* Fixed elements otherwise repeat on every printed page */
+  .fixed,
+  [class*="fixed"] { position: static !important; }
+
+  /* Collapsed <details> must print open */
+  details > div { display: block !important; }
+  summary { list-style: none; }
+
+  /* Logo is white-on-transparent — invert so it reads on paper */
+  img[src*="paradigm-white"] {
+    filter: invert(1) !important;
+  }
+
+  /* ── 6. Flow and pagination ────────────────────────────────── */
+  section {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 8mm 0 !important;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  main > section:first-of-type { padding-top: 0 !important; }
+
+  /* One page break per chapter — structural, not decorative */
+  #summary, #journey, #venue, #experience,
+  #production, #timeline, #budget, #library, #contact {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Embedded quotation prints in full rather than in its scroll window */
+  #budget .max-h-\[78vh\] { max-height: none !important; }
+  #budget .overflow-auto { overflow: visible !important; }
+
+  .card, table, blockquote, figure, thead {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  tr { break-inside: avoid; page-break-inside: avoid; }
+
+  h1, h2, h3, h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* ── 7. Media ──────────────────────────────────────────────── */
+  img { max-width: 100% !important; }
+
+  main > section,
+  section > div { overflow: visible !important; }
+
+  /* Typographic tightening for paper */
+  body { font-size: 10.5pt; line-height: 1.45; }
+
+  .print-break { break-before: page; page-break-before: always; }
+}
