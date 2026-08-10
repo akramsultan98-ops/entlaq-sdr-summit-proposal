@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { VenueMap } from "@/components/viz/Charts";
 import { DataWall } from "@/components/viz/DataWall";
 import {
-  venue, experiences, experienceIntro, production, phases,
+  venue, experiences, experienceIntro, welcomeKit, production, phases,
 } from "@/content/proposal";
 
 /* ═══════════════ 03 · SIA, EL GOUNA ═══════════════
@@ -55,19 +55,110 @@ export interface Shot {
 }
 
 /**
- * Frame ratio for a concept image.
+ * One frame for the whole chapter.
  *
- * Not the image's own ratio — a *clamped* one. Very wide sources would
- * otherwise produce a letterbox-thin card, and very tall ones a runaway
- * column. Clamping to 1.15–1.7 keeps every frame generous and roughly
- * consistent; `object-contain` then shows the whole composition inside it.
+ * Sources range from 500×400 to 4500×3000, so per-image ratios made the
+ * spreads stagger. A single 4:3 frame with `object-contain` gives consistent
+ * proportions down the page and still never crops a composition.
  */
-function frameRatio({ width, height }: { width: number; height: number }): number {
-  const r = height > 0 ? width / height : 1.5;
-  return Math.min(1.7, Math.max(1.15, r));
+const EDITORIAL_FRAME = 4 / 3;
+
+/**
+ * Editorial spread — image one side, copy vertically centred on the other,
+ * sides alternating down the page. Deliberately not a card grid: the only
+ * enclosed surfaces are the image plates themselves.
+ */
+function Spread({
+  num,
+  title,
+  line,
+  highlights,
+  hero,
+  rest,
+  flip,
+}: {
+  num: string;
+  title: string;
+  line?: string;
+  highlights?: { icon: string; t: string }[];
+  hero: Shot;
+  rest: Shot[];
+  flip: boolean;
+}) {
+  return (
+    <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-20">
+      {/* Source order stays image-then-copy so mobile always leads with the
+          image; only the desktop column order alternates. */}
+      <div className={`space-y-8 ${flip ? "lg:order-2" : ""}`}>
+        <Plate
+          src={hero.src}
+          alt={hero.alt}
+          aspect={EDITORIAL_FRAME}
+          fit="contain"
+          overlay="light"
+          quality={95}
+          sizes="(max-width: 1024px) 100vw, 46vw"
+          className="[&>div]:rounded-3xl"
+        />
+        {rest.map((s) => (
+          <Plate
+            key={s.src}
+            src={s.src}
+            alt={s.alt}
+            aspect={EDITORIAL_FRAME}
+            fit="contain"
+            overlay="light"
+            quality={95}
+            sizes="(max-width: 1024px) 100vw, 36vw"
+            className="mx-auto w-[82%] [&>div]:rounded-3xl"
+          />
+        ))}
+      </div>
+
+      <div className={flip ? "lg:order-1" : ""}>
+        <div className="flex items-center gap-4">
+          <span className="font-mono text-[11px] tracking-[0.2em] text-signal-500">{num}</span>
+          <span className="h-px w-14 bg-signal-500/35" />
+        </div>
+
+        <h3 className="mt-6 font-display text-3xl leading-[1.15] text-cream-50 text-balance md:text-4xl">
+          {title}
+        </h3>
+
+        {line && (
+          <p className="mt-6 max-w-md text-[15px] leading-[1.8] text-cream-300/70 text-pretty">
+            {line}
+          </p>
+        )}
+
+        {highlights && highlights.length > 0 && (
+          <Stagger className="mt-10 max-w-md border-t border-cream-100/[0.08]">
+            {highlights.map((h) => (
+              <StaggerItem key={h.t}>
+                <div className="flex items-center gap-4 border-b border-cream-100/[0.08] py-3.5">
+                  <span className="text-signal-500/80">
+                    <Icon name={h.icon} />
+                  </span>
+                  <span className="text-[13.5px] tracking-wide text-cream-200">{h.t}</span>
+                </div>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export function ExperienceDesign({ shots }: { shots: Record<string, Shot[]> }) {
+export function ExperienceDesign({
+  shots,
+  kit,
+  kitContents,
+}: {
+  shots: Record<string, Shot[]>;
+  kit: Shot | null;
+  kitContents: string[];
+}) {
   return (
     <Section
       id="experience"
@@ -89,65 +180,74 @@ export function ExperienceDesign({ shots }: { shots: Record<string, Shot[]> }) {
       </Reveal>
 
       {/* Generous separation — a concept book, not a continuous gallery. */}
-      <div className="mt-20 space-y-36 md:space-y-48">
+      <div className="mt-24 space-y-40 md:mt-32 md:space-y-56">
         {experiences.map((ex, i) => {
           const [hero, ...rest] = shots[ex.t] ?? [];
           if (!hero) return null;
 
           return (
-            <Reveal key={ex.t} delay={i * 0.02}>
-              {/* image ~73% of content width, supporting column beside it */}
-              <div className="grid gap-10 lg:grid-cols-[2.7fr_1fr] lg:items-start lg:gap-14">
-                <div className="space-y-10">
-                  <Plate
-                    src={hero.src}
-                    alt={hero.alt}
-                    aspect={frameRatio(hero)}
-                    fit="contain"
-                    overlay="light"
-                    quality={95}
-                    sizes="(max-width: 1024px) 100vw, 73vw"
-                  />
-
-                  {/* Supporting references stack beneath at the same width —
-                      never a thumbnail beside the copy. */}
-                  {rest.map((s) => (
-                    <Plate
-                      key={s.src}
-                      src={s.src}
-                      alt={s.alt}
-                      aspect={frameRatio(s)}
-                      fit="contain"
-                      overlay="light"
-                      quality={95}
-                      sizes="(max-width: 1024px) 100vw, 55vw"
-                      className="mx-auto lg:w-[78%]"
-                    />
-                  ))}
-                </div>
-
-                {/* supporting column */}
-                <div>
-                  <h3 className="font-display text-2xl leading-tight text-cream-50">{ex.t}</h3>
-                  <p className="mt-3 text-[13.5px] leading-[1.7] text-cream-300/65">{ex.line}</p>
-
-                  <Stagger className="mt-7 space-y-2.5">
-                    {ex.highlights.map((h) => (
-                      <StaggerItem key={h.t}>
-                        <div className="card card-hover flex items-center gap-3 p-4">
-                          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-signal-500/25 bg-signal-500/[0.07] text-signal-400">
-                            <Icon name={h.icon} />
-                          </span>
-                          <span className="text-[13.5px] text-cream-100">{h.t}</span>
-                        </div>
-                      </StaggerItem>
-                    ))}
-                  </Stagger>
-                </div>
-              </div>
+            <Reveal key={ex.t}>
+              <Spread
+                num={String(i + 1).padStart(2, "0")}
+                title={ex.t}
+                line={ex.line}
+                highlights={ex.highlights}
+                hero={hero}
+                rest={rest}
+                flip={i % 2 === 1}
+              />
             </Reveal>
           );
         })}
+
+        {/* 07 · the featured finale — one wide plate, copy centred beneath */}
+        {kit && (
+          <Reveal>
+            <div className="border-t border-cream-100/[0.08] pt-20 md:pt-28">
+              <div className="mx-auto max-w-[1000px]">
+                <Plate
+                  src={kit.src}
+                  alt={kit.alt}
+                  aspect={16 / 10}
+                  fit="contain"
+                  overlay="light"
+                  quality={95}
+                  sizes="(max-width: 1024px) 100vw, 76vw"
+                  className="[&>div]:rounded-3xl"
+                />
+
+                <div className="mx-auto mt-12 max-w-2xl text-center">
+                  <div className="flex items-center justify-center gap-4">
+                    <span className="font-mono text-[11px] tracking-[0.2em] text-signal-500">
+                      {String(experiences.length + 1).padStart(2, "0")}
+                    </span>
+                    <span className="h-px w-14 bg-signal-500/35" />
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-cream-500">
+                      {welcomeKit.label}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-6 font-display text-3xl leading-[1.15] text-cream-50 text-balance md:text-4xl">
+                    {welcomeKit.title}
+                  </h3>
+                  <p className="mt-6 text-[15px] leading-[1.8] text-cream-300/70 text-pretty">
+                    {welcomeKit.line}
+                  </p>
+
+                  {kitContents.length > 0 && (
+                    <ul className="mt-9 flex flex-wrap justify-center gap-x-7 gap-y-2.5">
+                      {kitContents.map((c) => (
+                        <li key={c} className="text-[12.5px] tracking-wide text-cream-500">
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        )}
       </div>
     </Section>
   );

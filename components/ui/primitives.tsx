@@ -172,9 +172,10 @@ export function ActTransition({
       style={{ ["--accent" as string]: a.accent }}
       className="relative overflow-hidden py-28 md:py-40"
     >
-      <div className="watermark" aria-hidden="true">
-        <span>{a.name}</span>
-      </div>
+      {/* No background word here. This beat announces the *next* act, so its
+          watermark rendered a full-height "DO" immediately below the DIVE
+          card — reading as DIVE's background and duplicating the accented
+          title already in the foreground. The title carries the beat alone. */}
       <Reveal>
         <div className="relative mx-auto max-w-sect px-6 text-center md:px-12">
           <p className="font-display text-2xl leading-[1.35] text-cream-300/70 md:text-3xl">

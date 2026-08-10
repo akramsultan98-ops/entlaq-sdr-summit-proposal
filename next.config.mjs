@@ -18,6 +18,23 @@ const nextConfig = {
     // Reference imagery is browsed, not archived; 60s is ample for a static build
     minimumCacheTTL: 60,
   },
+
+  /**
+   * `.jfif` has no registered MIME mapping, so a static host serves it as
+   * `application/octet-stream`. Next's own optimizer sniffs magic bytes and
+   * copes; Vercel's edge optimizer validates the upstream Content-Type and
+   * rejects anything that is not `image/*` — which is why .jfif rendered
+   * locally but broke in production. The shipped files are .jpg now; this
+   * keeps any future .jfif drop safe rather than silently broken.
+   */
+  async headers() {
+    return [
+      {
+        source: "/:path*.jfif",
+        headers: [{ key: "Content-Type", value: "image/jpeg" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

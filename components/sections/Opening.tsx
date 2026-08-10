@@ -214,7 +214,9 @@ export function EventJourney() {
                   style={{ ["--accent" as string]: a.accent }}
                   className="relative overflow-hidden rounded-2xl border border-cream-100/[0.07] px-7 py-10 md:px-12 md:py-14"
                 >
-                  <div className="watermark" aria-hidden="true">
+                  {/* Background word is always this card's own act — cropped
+                      at the baseline so it never competes with the columns. */}
+                  <div className="watermark-act" aria-hidden="true">
                     <span>{a.name}</span>
                   </div>
 

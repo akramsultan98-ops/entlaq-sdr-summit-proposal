@@ -94,8 +94,19 @@ export const experienceIntro =
  * Concept blocks. `refs` are slugs resolved against /public/reference/experience
  * — extension and casing are irrelevant, nothing is hardcoded. `fallback` is an
  * existing project asset shown until concept references are supplied.
+ *
+ * `line` and `highlights` are optional: a block with imagery but no approved
+ * copy renders its title alone rather than borrowing another block's words.
  */
-export const experiences = [
+export interface Experience {
+  t: string;
+  line?: string;
+  refs: string[];
+  fallback: string;
+  highlights?: { icon: string; t: string }[];
+}
+
+export const experiences: Experience[] = [
   {
     t: "Registration Experience",
     line: "The first impression is not the stage. It is the welcome.",
@@ -118,6 +129,14 @@ export const experiences = [
       { icon: "star", t: "Executive Meetings" },
       { icon: "shield", t: "Private Discussions" },
     ],
+  },
+  {
+    /* Promoted to its own block so the badge artwork reads as a deliverable,
+       not a secondary shot inside Registration. No approved copy exists for
+       it yet — the title carries the section rather than invented prose. */
+    t: "Delegate Badges",
+    refs: ["delegate-badges"],
+    fallback: "/media/concept-design.jpg",
   },
   {
     t: "Networking Experience",
@@ -155,6 +174,16 @@ export const experiences = [
     ],
   },
 ];
+
+/** Closes chapter 04 as the featured final section. Copy unchanged. */
+export const welcomeKit = {
+  label: "Proposed",
+  title: "Participant Welcome Kit",
+  line:
+    "Participant welcome items designed to create a thoughtful, premium arrival experience " +
+    "and reinforce the SDR Summit identity. Items and finishes are proposed and subject to " +
+    "confirmation.",
+};
 
 /* ────────────────────── 05 · TECHNICAL PRODUCTION ────────────────────── */
 

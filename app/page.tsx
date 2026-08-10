@@ -7,7 +7,7 @@ import { Budget } from "@/components/sections/Budget";
 import { CreativeLibrary } from "@/components/sections/Library";
 import { Contact } from "@/components/sections/Contact";
 import { listReference, routeReferences, measure, findMedia } from "@/lib/reference";
-import { REFERENCE_FOLDERS } from "@/content/library";
+import { REFERENCE_FOLDERS, contentsFor } from "@/content/library";
 import { experiences, mainStage } from "@/content/proposal";
 
 export default function Page() {
@@ -23,7 +23,7 @@ export default function Page() {
     experiences.map((e) => ({
       key: e.t,
       slugs: e.refs,
-      keywords: [e.t, ...e.refs, ...e.highlights.map((h) => h.t)],
+      keywords: [e.t, ...e.refs, ...(e.highlights ?? []).map((h) => h.t)],
     }))
   );
 
@@ -48,6 +48,13 @@ export default function Page() {
     ? { src: sr.src, alt: mainStage.title, width: sr.width, height: sr.height }
     : null;
 
+  // Participant welcome kit — closes chapter 04 as its featured section.
+  const kitFile = kits[0] ?? null;
+  const kit: Shot | null = kitFile
+    ? { src: kitFile.src, alt: kitFile.title, width: kitFile.width, height: kitFile.height }
+    : null;
+  const kitContents = kitFile ? contentsFor(kitFile.file) : [];
+
   return (
     <>
       <Rail />
@@ -57,11 +64,11 @@ export default function Page() {
         <ExecutiveSummary />
         <EventJourney />
         <VenueChapter />
-        <ExperienceDesign shots={experienceShots} />
+        <ExperienceDesign shots={experienceShots} kit={kit} kitContents={kitContents} />
         <TechnicalProduction />
         <Timeline />
         <Budget />
-        <CreativeLibrary kits={kits} stage={stage} />
+        <CreativeLibrary stage={stage} />
         <Contact />
       </main>
     </>
