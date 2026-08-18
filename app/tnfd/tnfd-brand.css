@@ -1,0 +1,15 @@
+/* TNFD proposal brand treatment — Paradigm Capital Group */
+main > aside > div:first-child {
+  width: 116px;
+  height: 64px;
+  margin-bottom: 10px;
+  font-size: 0;
+  line-height: 0;
+  background: url('/brand/paradigm-white.png') left top / contain no-repeat;
+}
+
+@media (max-width: 1279px) {
+  main > aside > div:first-child {
+    display: none;
+  }
+}
